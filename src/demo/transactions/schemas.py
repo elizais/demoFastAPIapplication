@@ -1,4 +1,6 @@
+from collections import Counter
 from datetime import date
+from typing import Dict
 from typing import List
 from typing import Optional
 
@@ -35,5 +37,3 @@ class TransactionGetQuery(BaseModel):
     date_to: Optional[str] = None
     shop: Optional[List[int]] = None
     category: Optional[List[int]] = None
-
-

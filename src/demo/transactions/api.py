@@ -41,8 +41,8 @@ def create_transaction(
     response_model=List[Transaction],
     status_code=status.HTTP_201_CREATED,
 )
-def create_transaction(
-    transactions_get_query: TransactionGetQuery,
+def get_transaction(
+    transactions_get_query: TransactionGetQuery = Depends(),
     current_account: AuthAccount = Depends(get_current_account),
     service: TransactionsService = Depends(),
 ):
@@ -53,18 +53,18 @@ def create_transaction(
         raise HTTPException(status.HTTP_409_CONFLICT) from None
 
 
-# @router.get(
-#     '/report',
-#     response_model=Transaction,
-#     status_code=status.HTTP_201_CREATED,
-# )
-# def create_transaction(
-#     transactions_get_query: TransactionGetQuery,
-#     current_account: AuthAccount = Depends(get_current_account),
-#     service: TransactionsService = Depends(),
-# ):
-#     try:
-#         report = service.get_report(transactions_get_query)
-#         return report
-#     except EntityConflictError:
-#         raise HTTPException(status.HTTP_409_CONFLICT) from None
+@router.get(
+    '/report',
+    response_model=Transaction,
+    status_code=status.HTTP_201_CREATED,
+)
+def create_transaction(
+    transactions_get_query: TransactionGetQuery,
+    current_account: AuthAccount = Depends(get_current_account),
+    service: TransactionsService = Depends(),
+):
+    try:
+        report = service.get_report(transactions_get_query)
+        return report
+    except EntityConflictError:
+        raise HTTPException(status.HTTP_409_CONFLICT) from None
