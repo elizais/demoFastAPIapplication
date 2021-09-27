@@ -1,0 +1,4 @@
+database_url = "sqlite:///database.sqlite"
+
+jwt_access_lifetime = 1000
+jwt_refresh_lifetime = 100000
