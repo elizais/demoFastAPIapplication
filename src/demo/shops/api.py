@@ -1,11 +1,7 @@
-from typing import List
-
 from fastapi import APIRouter
 from fastapi import Depends
-from fastapi import FastAPI
 from fastapi import HTTPException
 from fastapi import status
-from fastapi.security import OAuth2PasswordRequestForm
 
 from .schemas import Category
 from .schemas import CategoryChange

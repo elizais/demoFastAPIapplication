@@ -1,17 +1,9 @@
-from collections import Counter
-from datetime import date
 from typing import List
 from typing import Optional
-from operator import attrgetter
 
 from fastapi import Depends
-from sqlalchemy import and_
-from sqlalchemy import or_
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.exc import NoResultFound
-from sqlalchemy.orm import aliased
-from sqlalchemy.sql import join
 
 from .models import Transactions
 from .schemas import ChildrenReport
@@ -23,7 +15,6 @@ from ..config import get_settings
 from ..database import Session
 from ..database import get_session
 from ..exceptions import EntityConflictError
-from ..exceptions import EntityDoesNotExistError
 
 
 class TransactionsService:

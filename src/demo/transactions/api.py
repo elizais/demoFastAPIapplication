@@ -7,13 +7,11 @@ from fastapi import status
 
 from .schemas import Transaction
 from .schemas import TransactionCreate
-from .schemas import Report
 from .services import TransactionsService
 from .services import TransactionGetQuery
 from ..auth.services import get_current_account
 from ..auth.schemas import AuthAccount
 from ..exceptions import EntityConflictError
-from ..exceptions import EntityDoesNotExistError
 
 router = APIRouter(
     prefix='/operations'
