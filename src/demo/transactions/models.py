@@ -1,7 +1,7 @@
 from sqlalchemy import Column
 from sqlalchemy import ForeignKey
 from sqlalchemy import Integer
-from sqlalchemy import Numeric
+from sqlalchemy import Float
 from sqlalchemy import String
 
 from ..database import Base
@@ -16,5 +16,5 @@ class Transactions(Base):
     shop_id = Column(ForeignKey('shops.id'), nullable=False)
     category_id = Column(ForeignKey('categories.id'))
     name = Column(String, nullable=False)
-    price = Column(Numeric, nullable=False)
-    amount = Column(Numeric, nullable=False)
+    price = Column(Float, nullable=False)
+    amount = Column(Float, nullable=False)

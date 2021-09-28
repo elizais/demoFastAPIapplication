@@ -14,6 +14,7 @@ from sqlalchemy.orm import aliased
 from sqlalchemy.sql import join
 
 from .models import Transactions
+from .schemas import ChildrenReport
 from .schemas import TransactionCreate
 from .schemas import TransactionGetQuery
 from .schemas import Report
@@ -53,21 +54,12 @@ class TransactionsService:
 
     def get_transactions(self, transactions_get_query: TransactionGetQuery = Depends(...)
                          ) -> Optional[List[Transactions]]:
-        return self.session.execute(select(Transactions).where(
-            Transactions.category_id.in_(transactions_get_query.category)
-            if transactions_get_query.category is not None else True,
-            Transactions.shop_id.in_(transactions_get_query.category)
-            if transactions_get_query.shop is not None else True,
-            Transactions.date >= transactions_get_query.date_from
-            if transactions_get_query.date_from is not None else True,
-            Transactions.date <= transactions_get_query.date_to
-            if transactions_get_query.date_to is not None else True,
-        )).scalars().all()
+        return self._get_transactions(transactions_get_query)
 
-    def get_report(self, transactions_get_query: TransactionGetQuery,):
-        transactions = self.get_transactions(transactions_get_query)
-        report = {"buy": ReportRecord("buy"), "sale": ReportRecord("sale")}
+    def get_report(self, transactions_get_query: TransactionGetQuery):
+        transactions = self._get_transactions(transactions_get_query)
         time_points = set()
+        operations = {'buy': ReportHierarchy('Покупка'), 'sale': ReportHierarchy('Продажа')}
         for row in transactions:
             row_type = row.type
             row_date = row.date
@@ -78,31 +70,53 @@ class TransactionsService:
                 row.category_id,
                 row.name,
             ]
-            report[row_type].add_row(path, row_date, row_amount)
-        report["time_points"] = time_points
-        print(report)
+            operations[row_type].add_child_elem(path, row_amount)
+        print(operations)
         return Report(
             time_points=time_points,
-            buy=report["buy"],
-            sale=report["sale"]
+            buy=self._add_child(operations['buy']),
+            sale=self._add_child(operations['sale'])
         )
 
+    def _get_transactions(self, transactions_get_query: TransactionGetQuery = Depends(...)
+                          ) -> Optional[List[Transactions]]:
+        transactions = self.session.execute(select(Transactions)
+            .where(
+            Transactions.category_id.in_(transactions_get_query.category)
+            if transactions_get_query.category is not None else True,
+            Transactions.shop_id.in_(transactions_get_query.category)
+            if transactions_get_query.shop is not None else True,
+            Transactions.date >= transactions_get_query.date_from
+            if transactions_get_query.date_from is not None else True,
+            Transactions.date <= transactions_get_query.date_to
+            if transactions_get_query.date_to is not None else True,
+        )).scalars().all()
+        return transactions
 
-class ReportRecord:
-    def __init__(self, key):
-        self.key = key
-        self.amounts = Counter()
-        self.total = 0
+    def _add_child(self, operations):
+        return [ChildrenReport(
+            name=str(row.name),
+            amounts=row.amounts,
+            total_amount=row.total_amount,
+            children=self._add_child(row)
+        ) for row in operations.children.values() if operations.children.values() is not None]
+
+
+class ReportHierarchy:
+    def __init__(self, name):
+        self.name = name
+        self.amounts = []
+        self.total_amount = 0
         self.children = {}
 
-    def add_row(self, path, date: str, amount):
-        self.amounts[date] += amount
-        self.total += amount
+    def add_child_elem(self, hierarchy, amount):
+        self.amounts.append(amount)
+        self.total_amount += amount
 
-        if path:
-            key = path.pop(0)
+        if hierarchy:
+            name = hierarchy.pop(0)
             try:
-                child = self.children[key]
+                child = self.children[name]
             except KeyError:
-                child = self.children[key] = ReportRecord(key)
-            child.add_row(path, date, amount)
+                child = self.children[name] = ReportHierarchy(name)
+            child.add_child_elem(hierarchy, amount)

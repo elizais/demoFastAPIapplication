@@ -7,6 +7,7 @@ from fastapi import status
 
 from .schemas import Transaction
 from .schemas import TransactionCreate
+from .schemas import Report
 from .services import TransactionsService
 from .services import TransactionGetQuery
 from ..auth.services import get_current_account
@@ -55,7 +56,6 @@ def get_transaction(
 
 @router.get(
     '/report',
-    response_model=Transaction,
     status_code=status.HTTP_201_CREATED,
 )
 def create_transaction(
